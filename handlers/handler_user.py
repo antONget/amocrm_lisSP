@@ -3,8 +3,8 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup, default_state
-from amocrm_test.v2 import tokens, Lead, Contact
-from amocrm_test.v2.exceptions import AmoApiException
+from amocrm.v2 import tokens, Lead, Contact
+from amocrm.v2.exceptions import AmoApiException
 from config_data.config import Config, load_config
 import keyboards.keyboard_user as kb
 from filter.filter import validate_russian_phone_number
