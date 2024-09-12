@@ -139,6 +139,15 @@ async def process_validate_russian_phone_number(message: Message, state: FSMCont
     await state.update_data(phone=phone)
     await state.set_state(default_state)
     data = await state.get_data()
+    for admin in config.tg_bot.admin_ids.split('_'):
+        try:
+            await bot.send_message(chat_id=admin,
+                                   text=f'Пользователь @{message.from_user.username} отправил данные:\n\n'
+                                        f'<b>Имя</b>: {data["name"]}\n'
+                                        f'<b>Телефон</b>: {data["phone"]}\n'
+                                        f'<b>Продукт</b>: {data["product"]}\n')
+        except:
+            pass
     await create_lead_in_amocrm(name=data['name'], phone=data['phone'], product=data['product'])
     await message.answer(text='Данные успешно отправлены',
                          reply_markup=ReplyKeyboardRemove())
