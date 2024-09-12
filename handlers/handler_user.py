@@ -139,7 +139,7 @@ async def process_validate_russian_phone_number(message: Message, state: FSMCont
     await state.update_data(phone=phone)
     await state.set_state(default_state)
     data = await state.get_data()
-    for admin in config.tg_bot.admin_ids.split('_'):
+    for admin in config.tg_bot.admin_ids.split(','):
         try:
             await bot.send_message(chat_id=admin,
                                    text=f'Пользователь @{message.from_user.username} отправил данные:\n\n'
