@@ -37,3 +37,11 @@ def keyboards_get_contact() -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
     return keyboard
+
+
+def keyboard_content() -> InlineKeyboardMarkup:
+    logging.info("keyboard_agree")
+    button_1 = InlineKeyboardButton(text='Да', callback_data=f'content_yes')
+    button_2 = InlineKeyboardButton(text='Нет', callback_data=f'content_no')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
+    return keyboard

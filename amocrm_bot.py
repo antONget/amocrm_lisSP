@@ -6,7 +6,7 @@ from aiogram.types import ErrorEvent
 
 from handlers import handler_user
 from config_data.config import Config, load_config
-
+from database.models import async_main
 import asyncio
 import logging
 import traceback
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Функция конфигурирования и запуска бота
 async def main():
+    await async_main()
     # Конфигурируем логирование
     logging.basicConfig(
         level=logging.INFO,

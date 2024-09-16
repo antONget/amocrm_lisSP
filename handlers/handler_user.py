@@ -3,13 +3,14 @@ from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup, default_state
-from amocrm.v2 import tokens, Lead, Contact
+from amocrm.v2 import Lead, Contact
 from amocrm.v2.exceptions import AmoApiException
 from config_data.config import Config, load_config
 import keyboards.keyboard_user as kb
 from filter.filter import validate_russian_phone_number
+from filter.admin_filter import IsSuperAdmin
 import logging
-
+from database import requests as rq
 
 router = Router()
 config: Config = load_config()
@@ -18,19 +19,9 @@ config: Config = load_config()
 class Stage(StatesGroup):
     name = State()
     phone = State()
+    content = State()
 
 
-# def amocrm_authorize():
-#     tokens.default_token_manager(
-#         client_id=config.tg_bot.amocrm_client_id,
-#         client_secret=config.tg_bot.amocrm_client_secret,
-#         subdomain=config.tg_bot.amocrm_subdomain,
-#         redirect_url=config.tg_bot.amocrm_redirect_irl,
-#         storage=tokens.FileTokensStorage(),  # Использование хранения токенов в файле
-#     )
-#
-# # Вызываем функцию авторизации при запуске
-# amocrm_authorize()
 async def create_lead_in_amocrm(name, phone, product):
     logging.info("create_lead_in_amocrm")
     try:
@@ -41,18 +32,17 @@ async def create_lead_in_amocrm(name, phone, product):
                 {
                     "field_code": "PHONE",
                     "values": [{"value": phone}]
-                }
+                },
             ]
         )
-
         # Создание лида
         lead = Lead.objects.create(
             name=f"Лид от {name}",
-            contacts=[contact],
+            contacts=[contact.id],
             custom_fields_values=[
                 {
-                    "field_code": "PRODUCT",
-                    "values": [{"value": product}]
+                    "field_id": 1117555,
+                    "values": [{"value": str(product)}]
                 }
             ]
         )
@@ -68,16 +58,23 @@ async def create_lead_in_amocrm(name, phone, product):
         return False
 
 
+@router.message(F.text == '/send_content', IsSuperAdmin())
+async def send_content(message: Message, state: FSMContext):
+    await message.answer(text='Пришлите контент для рассылки')
+    await state.set_state(Stage.content)
+
+
 @router.message(CommandStart())
-async def process_start_command(message: Message, state: FSMContext, bot: Bot) -> None:
+async def process_start_command(message: Message, state: FSMContext) -> None:
     """
     Запуск бота - нажата кнопка "Начать" или введена команда "/start"
     :param message:
     :param state:
-    :param bot:
     :return:
     """
     logging.info(f"process_start_command {message.chat.id}")
+    await rq.add_user(tg_id=message.chat.id, data={"tg_id": message.chat.id,
+                                                   "username": message.from_user.username})
     await state.set_state(default_state)
     await message.answer(text=f'Давайте познакомимся. Скажите, как Вас зовут?')
     await state.set_state(Stage.name)
@@ -101,12 +98,11 @@ async def get_username(message: Message, state: FSMContext):
 
 @router.message(lambda message: message.text in ["Тетрадь Пиши-стирай", "Лепим из пластилина тетрадь", "Вырезалки",
                                                  "Раскраску", "Игру на липучках", "Прописи"])
-async def process_select_product(message: Message, state: FSMContext, bot: Bot) -> None:
+async def process_select_product(message: Message, state: FSMContext) -> None:
     """
     Выбор продукта
     :param message:
     :param state:
-    :param bot:
     :return:
     """
     logging.info("process_select_product")
@@ -118,7 +114,7 @@ async def process_select_product(message: Message, state: FSMContext, bot: Bot) 
 
 
 @router.callback_query(F.data.startswith('agree_'))
-async def process_select_product(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
+async def process_select_product(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer(text=f'Поделитесь вашим номером телефона ☎️',
                                   reply_markup=kb.keyboards_get_contact())
     await state.set_state(Stage.phone)
@@ -151,3 +147,58 @@ async def process_validate_russian_phone_number(message: Message, state: FSMCont
     await create_lead_in_amocrm(name=data['name'], phone=data['phone'], product=data['product'])
     await message.answer(text='Данные успешно отправлены',
                          reply_markup=ReplyKeyboardRemove())
+
+
+
+
+
+@router.message(StateFilter(Stage.content))
+async def get_content(message: Message, state: FSMContext):
+    if message.photo:
+        id_photo = message.photo[-1].file_id
+        caption = message.caption
+        await state.update_data(id_photo=id_photo)
+        await state.update_data(caption=caption)
+        await state.update_data(send_content='send_content')
+    else:
+        send_content = message.html_text
+        await state.update_data(id_photo='id_photo')
+        await state.update_data(caption='caption')
+        await state.update_data(send_content=send_content)
+    await state.set_state(default_state)
+    await message.answer(text='Разослать контент?',
+                         reply_markup=kb.keyboard_content())
+
+
+@router.callback_query(F.data.startswith('content'))
+async def send_content(callback: CallbackQuery, bot: Bot, state: FSMContext):
+    await callback.answer()
+    list_users = await rq.get_all_users()
+    answer = callback.data.split('_')[1]
+    if answer == 'yes':
+        data = await state.get_data()
+        id_photo = data['id_photo']
+        caption = data['caption']
+        send_content = data['send_content']
+        await bot.delete_message(chat_id=callback.message.chat.id,
+                                 message_id=callback.message.message_id)
+        await callback.message.answer(text=f'Запущена рассылка')
+        for user in list_users:
+            print(user.tg_id)
+            try:
+                await bot.send_photo(chat_id=user.tg_id,
+                                     photo=id_photo,
+                                     caption=caption)
+            except:
+                print('error')
+
+        for user in list_users:
+            try:
+                await bot.send_message(chat_id=user.tg_id,
+                                       text=send_content)
+            except:
+                print('error')
+    else:
+        await bot.delete_message(chat_id=callback.message.chat.id,
+                                 message_id=callback.message.message_id)
+        await callback.message.answer(text='Рассылка отменена')

@@ -13,8 +13,8 @@ class TgBot:
     amocrm_client_secret: str
     amocrm_redirect_irl: str
     amocrm_subdomain: str
-    amocrm_access_token: str
-    amocrm_refresh_token: str
+    # amocrm_access_token: str
+    # amocrm_refresh_token: str
 
 
 @dataclass
@@ -32,7 +32,5 @@ def load_config(path: str = None) -> Config:
                                amocrm_client_id=env('AMOCRM_CLIENT_ID'),
                                amocrm_client_secret=env('AMOCRM_CLIENT_SECRET'),
                                amocrm_redirect_irl=env('AMOCRM_REDIRECT_URL'),
-                               amocrm_subdomain=env('AMOCRM_SUBDOMAIN'),
-                               amocrm_access_token=env('AMOCRM_ACCESS_TOKEN'),
-                               amocrm_refresh_token=env('AMOCRM_REFRESH_TOKEN'))
+                               amocrm_subdomain=env('AMOCRM_SUBDOMAIN'))
                   )
