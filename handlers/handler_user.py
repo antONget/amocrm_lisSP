@@ -91,14 +91,22 @@ async def get_username(message: Message, state: FSMContext):
     logging.info(f'anketa_get_username: {message.from_user.id}')
     name = message.text
     await state.update_data(name=name)
-    await message.answer(text=f'Рад вас приветствовать {name}. Какой товар у нас приобрели?',
+    await message.answer(text=f'Рад вас приветствовать, {name}. Какой товар у нас приобрели?',
                          reply_markup=kb.keyboard_product())
     await state.set_state(default_state)
 
 
-@router.message(lambda message: message.text in ["Тетрадь Пиши-стирай", "Лепим из пластилина тетрадь", "Вырезалки",
-                                                 "Раскраску", "Игру на липучках", "Прописи"])
-async def process_select_product(message: Message, state: FSMContext) -> None:
+@router.message(lambda message: message.text in [
+                                                    "Пиши-стирай",
+                                                    "Пальчиковая раскраска",
+                                                    "Прописи",
+                                                    "Игру на липучках",
+                                                    "Тактильная книга",
+                                                    "Вырезалки",
+                                                    "Книга с окошками",
+                                                    "Развитие речи"
+                                                ])
+async def process_select_product(message: Message, state: FSMContext, bot: Bot) -> None:
     """
     Выбор продукта
     :param message:
@@ -107,17 +115,37 @@ async def process_select_product(message: Message, state: FSMContext) -> None:
     """
     logging.info("process_select_product")
     await state.update_data(product=message.text)
+    await message.answer(text='Хотите получать бесплатные материалы от нас?',
+                         reply_markup=ReplyKeyboardRemove())
+    await bot.delete_message(chat_id=message.chat.id,
+                             message_id=message.message_id+1)
     if message.text == 'Игру на липучках':
         await message.answer_video(video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
-    await message.answer(text=f'Согласны на отправку персональных данных?',
+    await message.answer(text=f'Супер🎉\n'
+                              f'Хотите получать бесплатные материалы от нас?',
                          reply_markup=kb.keyboard_agree())
 
 
 @router.callback_query(F.data.startswith('agree_'))
-async def process_select_product(callback: CallbackQuery, state: FSMContext) -> None:
-    await callback.message.answer(text=f'Поделитесь вашим номером телефона ☎️',
-                                  reply_markup=kb.keyboards_get_contact())
-    await state.set_state(Stage.phone)
+async def process_select_product(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
+    answer = callback.data.split('_')[1]
+    if answer == 'yes':
+        await bot.delete_message(chat_id=callback.message.chat.id,
+                                 message_id=callback.message.message_id)
+        await callback.message.answer(text=f'Поделитесь вашим номером телефона ☎️',
+                                      reply_markup=kb.keyboards_get_contact())
+        await state.set_state(Stage.phone)
+    else:
+        try:
+            await callback.message.edit_text(text='К сожалению, без Вашего согласия мы не сможем отправить'
+                                                  ' бесплатные материалы\n\n'
+                                                  'Согласны на отправку персональных данных?',
+                                             reply_markup=kb.keyboard_agree())
+        except:
+            await callback.message.edit_text(text='К сожалению, без Вашего согласия мы не сможем отправить'
+                                                  ' бесплатные материалы\n\n'
+                                                  'Согласны на отправку персональных данных?',
+                                             reply_markup=kb.keyboard_agree())
     await callback.answer()
 
 
@@ -147,9 +175,8 @@ async def process_validate_russian_phone_number(message: Message, state: FSMCont
     await create_lead_in_amocrm(name=data['name'], phone=data['phone'], product=data['product'])
     await message.answer(text='Данные успешно отправлены',
                          reply_markup=ReplyKeyboardRemove())
-
-
-
+    await message.answer(text='Связаться с нами и задать свой вопрос можно здесь',
+                         reply_markup=kb.keyboard_manager())
 
 
 @router.message(StateFilter(Stage.content))

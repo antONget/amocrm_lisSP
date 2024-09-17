@@ -10,8 +10,7 @@ from database.models import async_main
 import asyncio
 import logging
 import traceback
-from amocrm.v2 import tokens, Lead, Contact
-from amocrm.v2.exceptions import AmoApiException
+from amocrm.v2 import tokens
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +21,8 @@ async def main():
     # Конфигурируем логирование
     logging.basicConfig(
         level=logging.INFO,
-        # filename="py_log.log",
-        # filemode='w',
+        filename="py_log.log",
+        filemode='w',
         format='%(filename)s:%(lineno)d #%(levelname)-8s '
                '[%(asctime)s] - %(name)s - %(message)s')
 

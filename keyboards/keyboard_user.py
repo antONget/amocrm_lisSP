@@ -7,12 +7,14 @@ def keyboard_product():
     logging.info("product_markup")
     builder = ReplyKeyboardBuilder()
     products = [
-        "Тетрадь Пиши-стирай",
-        "Лепим из пластилина тетрадь",
-        "Вырезалки",
-        "Раскраску",
+        "Пиши-стирай",
+        "Пальчиковая раскраска",
+        "Прописи",
         "Игру на липучках",
-        "Прописи"
+        "Тактильная книга",
+        "Вырезалки",
+        "Книга с окошками",
+        "Развитие речи"
     ]
     for product in products:
         builder.button(text=product)
@@ -27,6 +29,12 @@ def keyboard_agree() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
     return keyboard
 
+
+def keyboard_manager() -> InlineKeyboardMarkup:
+    logging.info("keyboard_manager")
+    button_1 = InlineKeyboardButton(text='Связаться с нами', url='https://t.me/vvp013')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]],)
+    return keyboard
 
 def keyboards_get_contact() -> ReplyKeyboardMarkup:
     logging.info("keyboards_get_contact")
