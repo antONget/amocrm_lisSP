@@ -100,7 +100,7 @@ async def get_username(message: Message, state: FSMContext):
                                                     "Пиши-стирай",
                                                     "Пальчиковая раскраска",
                                                     "Прописи",
-                                                    "Игры на липучках",
+                                                    "Игра на липучках",
                                                     "Тактильная книга",
                                                     "Вырезалки",
                                                     "Книга с окошками",
@@ -171,7 +171,7 @@ async def process_validate_russian_phone_number(message: Message, state: FSMCont
         except:
             pass
     data = await state.get_data()
-    if data['product'] == 'Игры на липучках':
+    if data['product'] == 'Игра на липучках':
         await message.answer_video(
             video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
     await create_lead_in_amocrm(name=data['name'], phone=data['phone'], product=data['product'])
