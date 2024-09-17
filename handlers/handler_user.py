@@ -100,7 +100,7 @@ async def get_username(message: Message, state: FSMContext):
                                                     "Пиши-стирай",
                                                     "Пальчиковая раскраска",
                                                     "Прописи",
-                                                    "Игру на липучках",
+                                                    "Игры на липучках",
                                                     "Тактильная книга",
                                                     "Вырезалки",
                                                     "Книга с окошками",
@@ -119,7 +119,7 @@ async def process_select_product(message: Message, state: FSMContext, bot: Bot) 
                          reply_markup=ReplyKeyboardRemove())
     await bot.delete_message(chat_id=message.chat.id,
                              message_id=message.message_id+1)
-    if message.text == 'Игру на липучках':
+    if message.text == 'Игры на липучках':
         await message.answer_video(video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
     await message.answer(text=f'Супер🎉\n'
                               f'Хотите получать бесплатные материалы от нас?',
