@@ -142,7 +142,7 @@ async def process_select_product(callback: CallbackQuery, state: FSMContext, bot
                                                   'Согласны на отправку персональных данных?',
                                              reply_markup=kb.keyboard_agree())
         except:
-            await callback.message.edit_text(text='К сожалению, без Вашего согласия мы не сможем отправить'
+            await callback.message.edit_text(text='К сoжалению, без Вашего согласия мы не сможем отправить'
                                                   ' бесплатные материалы\n\n'
                                                   'Согласны на отправку персональных данных?',
                                              reply_markup=kb.keyboard_agree())
