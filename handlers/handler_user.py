@@ -119,8 +119,6 @@ async def process_select_product(message: Message, state: FSMContext, bot: Bot) 
                          reply_markup=ReplyKeyboardRemove())
     await bot.delete_message(chat_id=message.chat.id,
                              message_id=message.message_id+1)
-    if message.text == 'Игры на липучках':
-        await message.answer_video(video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
     await message.answer(text=f'Супер🎉\n'
                               f'Хотите получать бесплатные материалы от нас?',
                          reply_markup=kb.keyboard_agree())
@@ -130,6 +128,9 @@ async def process_select_product(message: Message, state: FSMContext, bot: Bot) 
 async def process_select_product(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
     answer = callback.data.split('_')[1]
     if answer == 'yes':
+        data = await state.get_data()
+        if data['product'] == 'Игры на липучках':
+            await callback.message.answer_video(video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
         await bot.delete_message(chat_id=callback.message.chat.id,
                                  message_id=callback.message.message_id)
         await callback.message.answer(text=f'Поделитесь вашим номером телефона ☎️',
