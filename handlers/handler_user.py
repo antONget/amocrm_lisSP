@@ -128,9 +128,6 @@ async def process_select_product(message: Message, state: FSMContext, bot: Bot) 
 async def process_select_product(callback: CallbackQuery, state: FSMContext, bot: Bot) -> None:
     answer = callback.data.split('_')[1]
     if answer == 'yes':
-        data = await state.get_data()
-        if data['product'] == 'Игры на липучках':
-            await callback.message.answer_video(video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
         await bot.delete_message(chat_id=callback.message.chat.id,
                                  message_id=callback.message.message_id)
         await callback.message.answer(text=f'Поделитесь вашим номером телефона ☎️',
@@ -173,6 +170,10 @@ async def process_validate_russian_phone_number(message: Message, state: FSMCont
                                         f'<b>Продукт</b>: {data["product"]}\n')
         except:
             pass
+    data = await state.get_data()
+    if data['product'] == 'Игры на липучках':
+        await message.answer_video(
+            video='BAACAgIAAxkBAAMlZuGlVM-cyHUF95jPTGeYiJYufkoAAm1WAAK6nAlLWOty_-bYzzA2BA')
     await create_lead_in_amocrm(name=data['name'], phone=data['phone'], product=data['product'])
     await message.answer(text='Данные успешно отправлены',
                          reply_markup=ReplyKeyboardRemove())
