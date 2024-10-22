@@ -73,8 +73,12 @@ async def process_start_command(message: Message, state: FSMContext) -> None:
     :return:
     """
     logging.info(f"process_start_command {message.chat.id}")
+    if message.from_user.username:
+        username = message.from_user.username
+    else:
+        username = 'username'
     await rq.add_user(tg_id=message.chat.id, data={"tg_id": message.chat.id,
-                                                   "username": message.from_user.username})
+                                                   "username": username})
     await state.set_state(default_state)
     await message.answer(text=f'Давайте познакомимся. Скажите, как Вас зовут?')
     await state.set_state(Stage.name)
